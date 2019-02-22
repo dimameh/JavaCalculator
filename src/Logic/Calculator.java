@@ -61,13 +61,19 @@ public class Calculator {
     public static String Convert(String expression) {
         //builder добавление происходит быстрее чем string
         StringBuilder resultString = new StringBuilder();
-        expression = expression.replace(",",".");
+
         // В стек скидываются операции
         Stack<Character> operations = new Stack<>();
 
         // Переводим строку в массив символов
-        char[] chars = expression.toCharArray();
+        char[] chars = PrepareExpression(expression);
 
+        if(!IsBracketsCorrect(chars)){
+            throw new IllegalArgumentException("Ошибка. Неправильно расставлены скобки");
+        }
+        if(!IsExpressionCorrect(chars)){
+            throw new IllegalArgumentException("Ошибка при вводе выражения");
+        }
         for (int i = 0; i < chars.length; i++) {
             char ch = chars[i];
             if (chars[i] == '-' && ((i > 0 && !Character.isDigit(chars[i - 1])) || i == 0)) {
@@ -118,8 +124,28 @@ public class Calculator {
     /**
      * Является ли символ одним из доступных операторов
      */
-    private static boolean IsOperator(char ch) {
+    public static boolean IsOperator(char ch) {
         return ch == '*' || ch == '/' || ch == '+' || ch == '-';
+    }
+
+    /**
+     * Является ли символ скобкой или плавающей точкой
+     */
+    public static boolean IsBracketOrDot(char ch) {
+        return ch == '(' || ch == ')' || ch == '.' || ch == ',';
+    }
+
+    /**
+     * Подготовка записи выражения к обработке
+     */
+    private static char[] PrepareExpression(String expression){
+        expression = expression.replace(",",".");
+
+        while (expression.contains("--") || expression.contains("+-")){
+            expression = expression.replace("--","+");
+            expression = expression.replace("+-","-");
+        }
+        return expression.toCharArray();
     }
 
     /**
@@ -135,5 +161,57 @@ public class Calculator {
                 return 1;
         }
         return 0;
+    }
+
+    private static boolean IsBracketsCorrect(char[] chars){
+        int index = 0;
+        for (char ch: chars) {
+            if(ch == '('){
+                index++;
+            }
+            if(ch == ')'){
+                index--;
+            }
+        }
+        return index==0;
+    }
+
+    /**
+     * Проверка выражения на несоответствие общпринятым законам записи
+     */
+    private static boolean IsExpressionCorrect(char[] chars){
+        for (int i = 0; i < chars.length; i++){
+            //Буквы
+            if(Character.isLetter(chars[i])){
+                return false;
+            }
+            //Пробелы
+            if(Character.isWhitespace(chars[i])){
+                return false;
+            }
+            //Два оператора подряд
+            if(i!=chars.length-1){
+                if(IsOperator(chars[i]) &&  IsOperator(chars[i+1]) && chars[i+1] != '-') {
+                    return false;
+                }
+                //Точка после оператора
+                if(IsOperator(chars[i]) && chars[i+1]=='.'){
+                    return false;
+                }
+                //Две точки или точка после одной из скобок
+                if(IsBracketOrDot(chars[i]) && chars[i+1] == '.'){
+                    return false;
+                }
+                //Одна из скобок сразу после точки
+                if(chars[i] == '.' && (chars[i+1] == '(' || chars[i+1] == ')')){
+                    return false;
+                }
+                //Оператор после точки
+                if(chars[i] == '.' && IsOperator(chars[i+1])){
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 }
