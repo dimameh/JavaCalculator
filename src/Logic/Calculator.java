@@ -1,5 +1,7 @@
 package Logic;
 
+import java.math.BigDecimal;
+import java.math.MathContext;
 import java.util.Stack;
 
 //Класс производящий расчеты выражений записанных строкой типа String
@@ -10,7 +12,7 @@ public class Calculator {
      * @param expression Выражение в инфиксной нотации
      * @return Результат вычислений
      */
-    public static double CalculateExpression(String expression){
+    public static BigDecimal CalculateExpression(String expression){
         return Calculate(
                 Convert(
                         expression
@@ -23,34 +25,33 @@ public class Calculator {
      * @param expression Выражение в обратной польской нотации
      * @return Результат вычислений
      */
-    private static double Calculate(String expression) {
+    private static BigDecimal Calculate(String expression) {
+        //Точность вычислений
+        MathContext mc = new MathContext(20);
         //Стек для хранения чисел
-        Stack<Double> numbers = new Stack<>();
+        Stack<BigDecimal> numbers = new Stack<>();
+        //Количество значащих цифр
         for (String character : expression.split(" ")) {
             //Числа всегда добавляем в стек
             if (IsDigit(character)) {
-                numbers.push(Double.parseDouble(character));
+                numbers.push(new BigDecimal(character));
                 continue;
             }
-            double a;
-            double b;
+            BigDecimal a = numbers.pop();
+            BigDecimal b = numbers.pop();
             //Если попадается оператор, выполняем его с двумя последними числами в стеке
             switch (character) {
                 case "-":
-                    a = numbers.pop();
-                    b = numbers.pop();
-                    numbers.push(b - a);
+                    numbers.push(b.subtract(a, mc)) ;
                     break;
                 case "+":
-                    numbers.push(numbers.pop() + numbers.pop());
+                    numbers.push(b.add(a, mc));
                     break;
                 case "/":
-                    a = numbers.pop();
-                    b = numbers.pop();
-                    numbers.push(b / a);
+                    numbers.push(b.divide(a, mc));
                     break;
                 case "*":
-                    numbers.push(numbers.pop() * numbers.pop());
+                    numbers.push(b.multiply(a, mc));
                     break;
                 default:
                     break;
@@ -58,9 +59,6 @@ public class Calculator {
         }
 
         //Оставшееся число в стеке является ответом
-        if(numbers.peek() == -0.0){
-            return -numbers.pop();
-        }
         return numbers.pop();
     }
 
@@ -220,6 +218,23 @@ public class Calculator {
                 }
                 //Оператор после точки
                 if(chars[i] == '.' && IsOperator(chars[i+1])){
+                    return false;
+                }
+            }
+        }
+        for (int i = 0; i < chars.length; i++){
+            if(chars[i] == '.'){
+                i++;
+                while(IsDigit(Character.toString(chars[i]))){
+                    i++;
+                    if(i == chars.length-1){
+                        break;
+                    }
+                }
+                if(IsOperator(chars[i]) || chars[i] == '(' || chars[i] == ')'){
+                    continue;
+                }
+                if(chars[i] == '.'){
                     return false;
                 }
             }
