@@ -5,6 +5,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 
 import static Logic.Calculator.*;
 
@@ -44,8 +46,6 @@ public class CalculatorMainForm extends JFrame {
         pack();
         InitFormObjects();
         setVisible(true);
-
-
     }
 
     /**
@@ -111,15 +111,14 @@ public class CalculatorMainForm extends JFrame {
         //System.out.println(CalculateExpression(Convert("-9+(-3.1*(121.12*-3.001)+5*-(300/-25))+-36"))); //1141.7914719999999
     }
 
+    /**
+     * Вычислить значение выражения
+     */
     private void Calculate(){
         try{
-        answerLabel.setText( "= " +
-                CalculateExpression(
-                        Convert(
-                                expressionTextField.getText()
-                        )
-                )
-        );
+
+            NumberFormat formatter = new DecimalFormat("#0.00000");
+            answerLabel.setText( "= " + formatter.format(CalculateExpression(expressionTextField.getText())));
         }
         catch (Exception e){
             JOptionPane.showMessageDialog(mainPanel, e.getMessage());

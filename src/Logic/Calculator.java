@@ -2,9 +2,28 @@ package Logic;
 
 import java.util.Stack;
 
+//Класс производящий расчеты выражений записанных строкой типа String
 public class Calculator {
 
-    public static double CalculateExpression(String expression) {
+    /**
+     * Расчет выражения в инфиксной нотации
+     * @param expression Выражение в инфиксной нотации
+     * @return Результат вычислений
+     */
+    public static double CalculateExpression(String expression){
+        return Calculate(
+                Convert(
+                        expression
+                )
+        );
+    }
+
+    /**
+     * Расчет выражения в обратной польской нотации
+     * @param expression Выражение в обратной польской нотации
+     * @return Результат вычислений
+     */
+    private static double Calculate(String expression) {
         //Стек для хранения чисел
         Stack<Double> numbers = new Stack<>();
         for (String character : expression.split(" ")) {
@@ -39,27 +58,17 @@ public class Calculator {
         }
 
         //Оставшееся число в стеке является ответом
+        if(numbers.peek() == -0.0){
+            return -numbers.pop();
+        }
         return numbers.pop();
     }
 
     /**
-     * Проверка является ли строка числом
-     */
-    private static boolean IsDigit(String str) {
-        try {
-            Double.parseDouble(str);
-        } catch (NumberFormatException nfe) {
-            return false;
-        }
-        return true;
-    }
-
-    /**
      * Выполняет конвертацию строки с выражением
-     * из инфиксной нотации в постфиксную
+     * из инфиксной нотации в постфиксную (Обратную польскую)
      */
-    public static String Convert(String expression) {
-        //builder добавление происходит быстрее чем string
+    private static String Convert(String expression) {
         StringBuilder resultString = new StringBuilder();
 
         // В стек скидываются операции
@@ -68,33 +77,50 @@ public class Calculator {
         // Переводим строку в массив символов
         char[] chars = PrepareExpression(expression);
 
+        //region Проверки на правильность ввода
+        //Проверка на неправильно расстваленные скобки
         if(!IsBracketsCorrect(chars)){
-            throw new IllegalArgumentException("Ошибка. Неправильно расставлены скобки");
+            throw new IllegalArgumentException("Ошибка. Неправильно расставлены скобки.");
         }
+        //Остальные проверки введенного выражения
         if(!IsExpressionCorrect(chars)){
-            throw new IllegalArgumentException("Ошибка при вводе выражения");
+            throw new IllegalArgumentException("Ошибка. при вводе выражения.");
         }
+        //endregion
+
         for (int i = 0; i < chars.length; i++) {
             char ch = chars[i];
-            if (chars[i] == '-' && ((i > 0 && !Character.isDigit(chars[i - 1])) || i == 0)) {
+            //Добавить знак "-" к числу если он является унарным оператором
+            if (chars[i] == '-' && (i == 0 || IsOperator(chars[i-1]) || chars[i-1] == '(')) {
+                resultString.append(ch);
+            }
+            //Если символ - цифра считать поциферно число
+            else if (Character.isDigit(ch) ) {
 
-                resultString.append("-"); //в переменную для чисел добавляется знак "-"
-            } else if (Character.isDigit(ch) ) {
-                // считываем поциферно число
-                while (Character.isDigit(chars[i]) || (chars[i] == '.' && Character.isDigit(chars[i+1]))) {
-                    resultString.append(chars[i++]);
+                try{
 
-                    if (i == chars.length) {
-                        break;
+                    // считываем поциферно число
+                    while (Character.isDigit(chars[i]) || (chars[i] == '.' && Character.isDigit(chars[i+1]))) {
+                        resultString.append(chars[i++]);
+                        if (i == chars.length) {
+                            break;
+                        }
                     }
+
                 }
+                catch(Exception e){
+                    throw new IllegalArgumentException("Ошибка. После точки всегда должна идти цифра.");
+                }
+
                 // Отделяем все элементы пробелами
                 i--;
                 resultString.append(' ');
-            } else if (ch == '(') {
+            }
+            else if (ch == '(') {
                 // Левую скобку закидываем в стек
                 operations.push(ch);
-            } else if (ch == ')') {
+            }
+            else if (ch == ')') {
                 // При встрече правой скобки, делаем pop стэка операций
                 // и прибавляем к результирующей строке все что напушило в стэк
                 // пока не встретим в нем левую скобку
@@ -103,7 +129,8 @@ public class Calculator {
                 }
                 //Выкидываем более ненужную левую скобку из стека
                 operations.pop();
-            } else if (IsOperator(ch)) {
+            }
+            else if (IsOperator(ch)) {
                 // Попаем из стека все операторы большего приоритета после чего
                 // заносим рассматриваемый оператор в стек
                 while (!operations.isEmpty() && Priority(operations.peek()) >= Priority(ch)) {
@@ -122,29 +149,10 @@ public class Calculator {
     }
 
     /**
-     * Является ли символ одним из доступных операторов
-     */
-    public static boolean IsOperator(char ch) {
-        return ch == '*' || ch == '/' || ch == '+' || ch == '-';
-    }
-
-    /**
-     * Является ли символ скобкой или плавающей точкой
-     */
-    public static boolean IsBracketOrDot(char ch) {
-        return ch == '(' || ch == ')' || ch == '.' || ch == ',';
-    }
-
-    /**
      * Подготовка записи выражения к обработке
      */
     private static char[] PrepareExpression(String expression){
         expression = expression.replace(",",".");
-
-        while (expression.contains("--") || expression.contains("+-")){
-            expression = expression.replace("--","+");
-            expression = expression.replace("+-","-");
-        }
         return expression.toCharArray();
     }
 
@@ -163,6 +171,9 @@ public class Calculator {
         return 0;
     }
 
+    /**
+     * Проверка правильности расстановки скобок
+     */
     private static boolean IsBracketsCorrect(char[] chars){
         int index = 0;
         for (char ch: chars) {
@@ -173,7 +184,7 @@ public class Calculator {
                 index--;
             }
         }
-        return index==0;
+        return index == 0;
     }
 
     /**
@@ -189,8 +200,9 @@ public class Calculator {
             if(Character.isWhitespace(chars[i])){
                 return false;
             }
-            //Два оператора подряд
+            //Проверки для символов, не являющимися последними в строке
             if(i!=chars.length-1){
+                //Два оператора подряд
                 if(IsOperator(chars[i]) &&  IsOperator(chars[i+1]) && chars[i+1] != '-') {
                     return false;
                 }
@@ -213,5 +225,32 @@ public class Calculator {
             }
         }
         return true;
+    }
+
+    /**
+     * Проверка является ли строка числом
+     */
+    private static boolean IsDigit(String str) {
+        try {
+            Double.parseDouble(str);
+        }
+        catch (NumberFormatException nfe) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Является ли символ одним из доступных операторов
+     */
+    private static boolean IsOperator(char ch) {
+        return ch == '*' || ch == '/' || ch == '+' || ch == '-';
+    }
+
+    /**
+     * Является ли символ скобкой или плавающей точкой
+     */
+    private static boolean IsBracketOrDot(char ch) {
+        return ch == '(' || ch == ')' || ch == '.' || ch == ',';
     }
 }
