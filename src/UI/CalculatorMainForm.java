@@ -8,32 +8,51 @@ import java.awt.event.KeyEvent;
 
 import static Logic.Calculator.*;
 
+/**
+ * Класс главной формы
+ */
 public class CalculatorMainForm extends JFrame {
+
     private JPanel mainPanel;
+
+    //region кнопки цифр
     private JButton button7;
     private JButton button8;
     private JButton button9;
-    private JButton divisionButton;
     private JButton button4;
     private JButton button5;
     private JButton button6;
-    private JButton multiplyButton;
-    private JButton button1;
-    private JButton dotButton;
-    private JTextField expressionTextField;
-    private JButton calculateButton;
-    private JLabel answerLabel;
-    private JButton CButton;
-    private JButton backspaceButton;
-    private JButton leftBraceButton;
-    private JButton rightBraceButton;
-    private JButton minusButton;
-    private JButton plusButton;
     private JButton button0;
+    private JButton button1;
     private JButton button2;
     private JButton button3;
+    //endregion
 
-    //region Инициализация и запуск
+    //region кнопки операций
+    private JButton divisionButton;
+    private JButton multiplyButton;
+    private JButton minusButton;
+    private JButton plusButton;
+    private JButton calculateButton;
+    //endregion
+
+    //region кнопки редактирования
+    private JButton CButton;
+    private JButton backspaceButton;
+    //endregion
+
+    //region остальные кнопки ввода
+    private JButton dotButton;
+    private JButton leftBraceButton;
+    private JButton rightBraceButton;
+    //endregion
+
+    //region элементы расчета
+    private JTextField expressionTextField;
+    private JLabel answerLabel;
+    //endregion
+
+    //region инициализация
 
     /**
      * Инициализация окна
@@ -66,6 +85,9 @@ public class CalculatorMainForm extends JFrame {
         return ch == KeyEvent.VK_BACK_SPACE;
     }
 
+    /**
+     * Подписывание кнопок, предназначеных для ввода выражения
+     */
     private void addActionsToWriterButtons(){
         var writeButtonTextAction = new ActionListener() {
             @Override
@@ -96,36 +118,12 @@ public class CalculatorMainForm extends JFrame {
         divisionButton.addActionListener(writeButtonTextAction);
     }
 
+    /**
+     * Дописать что либо в конец выражения
+     * @param str то что дописывается
+     */
     private void AddStringToExpression(String str){
         expressionTextField.setText(expressionTextField.getText() + str);
-    }
-
-    /**
-     * Запуск приложения
-     */
-    public static void main(String[] args) {
-        new CalculatorMainForm();
-        //System.out.println(Convert("5*(-3+8)"));
-        //System.out.println(CalculateExpression(Convert("9+(3*(121*3)+5*(300/25))+36"))); //1194.0
-        //System.out.println(CalculateExpression(Convert("-9+(-3.1*(121.12*-3.001)+5*-(300/-25))+-36"))); //1141.7914719999999
-    }
-
-    /**
-     * Вычислить значение выражения
-     */
-    private void Calculate(){
-        try{
-            answerLabel.setText( "= " + CalculateExpression(expressionTextField.getText()));
-        }
-        catch (Exception e){
-            if(e.getMessage().length()<1) {
-                JOptionPane.showMessageDialog(mainPanel, "Неизвестная ошибка");
-                answerLabel.setText("Ошибка");
-                return;
-            }
-            JOptionPane.showMessageDialog(mainPanel, e.getMessage());
-            answerLabel.setText("Ошибка ввода");
-        }
     }
 
     /**
@@ -159,7 +157,32 @@ public class CalculatorMainForm extends JFrame {
         });
     }
 
+    //endregion
 
+    /**
+     * Запуск приложения
+     */
+    public static void main(String[] args) {
+        new CalculatorMainForm();
+    }
+
+    /**
+     * Вычислить значение выражения
+     */
+    private void Calculate(){
+        try{
+            answerLabel.setText( "= " + CalculateExpression(expressionTextField.getText()));
+        }
+        catch (Exception e){
+            if(e.getMessage().length()<1) {
+                JOptionPane.showMessageDialog(mainPanel, "Неизвестная ошибка");
+                answerLabel.setText("Ошибка");
+                return;
+            }
+            JOptionPane.showMessageDialog(mainPanel, e.getMessage());
+            answerLabel.setText("Ошибка ввода");
+        }
+    }
 }
 
 

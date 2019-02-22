@@ -4,7 +4,9 @@ import java.math.BigDecimal;
 import java.math.MathContext;
 import java.util.Stack;
 
-//Класс производящий расчеты выражений записанных строкой типа String
+/**
+ * Класс производящий расчеты выражений записанных строкой типа String
+ */
 public class Calculator {
 
     /**
@@ -13,24 +15,23 @@ public class Calculator {
      * @return Результат вычислений
      */
     public static BigDecimal CalculateExpression(String expression){
-        return Calculate(
-                Convert(
-                        expression
-                )
-        );
+        return Calculate(Convert(expression));
     }
 
+    //region приватные методы
+
     /**
-     * Расчет выражения в обратной польской нотации
+     * Расчет выражения в обратной польской нотации с точностью в 20 значащих цифр
      * @param expression Выражение в обратной польской нотации
      * @return Результат вычислений
      */
     private static BigDecimal Calculate(String expression) {
         //Точность вычислений
         MathContext mc = new MathContext(20);
+
         //Стек для хранения чисел
         Stack<BigDecimal> numbers = new Stack<>();
-        //Количество значащих цифр
+
         for (String character : expression.split(" ")) {
             //Числа всегда добавляем в стек
             if (IsDigit(character)) {
@@ -58,7 +59,7 @@ public class Calculator {
             }
         }
 
-        //Оставшееся число в стеке является ответом
+        //Последнее число, оставшееся в стеке является ответом
         return numbers.pop();
     }
 
@@ -67,6 +68,7 @@ public class Calculator {
      * из инфиксной нотации в постфиксную (Обратную польскую)
      */
     private static String Convert(String expression) {
+        //Результирующая строка
         StringBuilder resultString = new StringBuilder();
 
         // В стек скидываются операции
@@ -76,6 +78,7 @@ public class Calculator {
         char[] chars = PrepareExpression(expression);
 
         //region Проверки на правильность ввода
+
         //Проверка на неправильно расстваленные скобки
         if(!IsBracketsCorrect(chars)){
             throw new IllegalArgumentException("Ошибка. Неправильно расставлены скобки.");
@@ -86,17 +89,17 @@ public class Calculator {
         }
         //endregion
 
+        //Преобразование выражения в постфиксную нотацию
         for (int i = 0; i < chars.length; i++) {
             char ch = chars[i];
+
             //Добавить знак "-" к числу если он является унарным оператором
             if (chars[i] == '-' && (i == 0 || IsOperator(chars[i-1]) || chars[i-1] == '(')) {
                 resultString.append(ch);
             }
             //Если символ - цифра считать поциферно число
             else if (Character.isDigit(ch) ) {
-
                 try{
-
                     // считываем поциферно число
                     while (Character.isDigit(chars[i]) || (chars[i] == '.' && Character.isDigit(chars[i+1]))) {
                         resultString.append(chars[i++]);
@@ -104,33 +107,31 @@ public class Calculator {
                             break;
                         }
                     }
-
                 }
                 catch(Exception e){
                     throw new IllegalArgumentException("Ошибка. После точки всегда должна идти цифра.");
                 }
-
-                // Отделяем все элементы пробелами
                 i--;
+                // Отделяем все элементы пробелами
                 resultString.append(' ');
             }
+            // Левую скобку просто закидываем в стек
             else if (ch == '(') {
-                // Левую скобку закидываем в стек
                 operations.push(ch);
             }
+            // При встрече правой скобки, делаем pop стэка операций
+            // и прибавляем к результирующей строке все что напушило в стэк
+            // пока не встретим в нем левую скобку
             else if (ch == ')') {
-                // При встрече правой скобки, делаем pop стэка операций
-                // и прибавляем к результирующей строке все что напушило в стэк
-                // пока не встретим в нем левую скобку
                 while (operations.peek() != '(') {
                     resultString.append(operations.pop()).append(' ');
                 }
                 //Выкидываем более ненужную левую скобку из стека
                 operations.pop();
             }
+            // Достаем из стека все операторы бОльшего приоритета
+            // после чего заносим рассматриваемый оператор в стек
             else if (IsOperator(ch)) {
-                // Попаем из стека все операторы большего приоритета после чего
-                // заносим рассматриваемый оператор в стек
                 while (!operations.isEmpty() && Priority(operations.peek()) >= Priority(ch)) {
                     resultString.append(operations.pop()).append(' ');
                 }
@@ -138,7 +139,7 @@ public class Calculator {
             }
         }
 
-        // Когда символы закончились, выпушиваем из стека все оставшиеся операторы в конец строки
+        // Когда символы закончились, достаем из стека все оставшиеся операторы в конец строки
         while (!operations.isEmpty()) {
             resultString.append(operations.pop()).append(' ');
         }
@@ -168,6 +169,8 @@ public class Calculator {
         }
         return 0;
     }
+
+    //region методы проверок
 
     /**
      * Проверка правильности расстановки скобок
@@ -268,4 +271,6 @@ public class Calculator {
     private static boolean IsBracketOrDot(char ch) {
         return ch == '(' || ch == ')' || ch == '.' || ch == ',';
     }
+    //endregion
+    //endregion
 }
