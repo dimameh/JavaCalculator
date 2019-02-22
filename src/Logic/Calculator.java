@@ -61,7 +61,7 @@ public class Calculator {
     public static String Convert(String expression) {
         //builder добавление происходит быстрее чем string
         StringBuilder resultString = new StringBuilder();
-
+        expression = expression.replace(",",".");
         // В стек скидываются операции
         Stack<Character> operations = new Stack<>();
 
@@ -73,9 +73,9 @@ public class Calculator {
             if (chars[i] == '-' && ((i > 0 && !Character.isDigit(chars[i - 1])) || i == 0)) {
 
                 resultString.append("-"); //в переменную для чисел добавляется знак "-"
-            } else if (Character.isDigit(ch)) {
+            } else if (Character.isDigit(ch) ) {
                 // считываем поциферно число
-                while (Character.isDigit(chars[i])) {
+                while (Character.isDigit(chars[i]) || (chars[i] == '.' && Character.isDigit(chars[i+1]))) {
                     resultString.append(chars[i++]);
 
                     if (i == chars.length) {

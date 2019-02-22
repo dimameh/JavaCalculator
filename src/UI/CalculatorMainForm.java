@@ -1,24 +1,22 @@
 package UI;
 
 import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-
 import static Logic.Calculator.CalculateExpression;
 import static Logic.Calculator.Convert;
 
 public class CalculatorMainForm extends JFrame {
     private JPanel mainPanel;
-    private JTextField expressionField;
+    private JTextField expressionTextField;
     private JButton calculateButton;
-    private JTextArea resultTextArea;
+    private JLabel tipLabel;
+    private JLabel answerLabel;
 
     //region Инициализация и запуск
 
     /**
      * Инициализация окна
      */
-    public CalculatorMainForm() {
+    private CalculatorMainForm() {
         setContentPane(mainPanel);
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         pack();
@@ -30,11 +28,10 @@ public class CalculatorMainForm extends JFrame {
      * Запуск приложения
      */
     public static void main(String[] args) {
-        //new CalculatorMainForm();
+        new CalculatorMainForm();
         //System.out.println(Convert("5*(-3+8)"));
-        //TODO: Добавить отрицательные числа
         //System.out.println(CalculateExpression(Convert("9+(3*(121*3)+5*(300/25))+36"))); //1194.0
-        System.out.println(CalculateExpression(Convert("-9+(-3*(121*-3)+5*-(300/-25))+-36"))); //1104
+        //System.out.println(CalculateExpression(Convert("-9+(-3.1*(121.12*-3.001)+5*-(300/-25))+-36"))); //1141.7914719999999
     }
 
     /**
@@ -42,12 +39,15 @@ public class CalculatorMainForm extends JFrame {
      */
     private void InitFormObjects() {
 
-        calculateButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-
-            }
-        });
+        calculateButton.addActionListener(e -> answerLabel.setText(
+                Double.toString(
+                        CalculateExpression(
+                            Convert(
+                                expressionTextField.getText()
+                            )
+                        )
+                )
+        ));
     }
 }
 
